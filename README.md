@@ -2,7 +2,7 @@
 
 ## Overview
 
-Welcome to our GitHub repository! This repository contains files related to format and semantic role annotations. Below are the key components of the repository:
+This repository contains files related to format and semantic role annotations. Below are the key components of the repository:
 
 1. **paragraphs_df**
    - This csv includes files related to format annotations. 
