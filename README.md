@@ -11,7 +11,7 @@ Welcome to our GitHub repository! This repository contains files related to form
    - This csv focuses on capturing information related to the semantic roles within the documents.
      
 3. **documents_df**
-   -This csv contains all the processed documents.
+   - This csv contains all the processed documents.
 
 4. **Format Annotation JSON**
    - The `format_annotation JSON` file is a JSON representation of the data in the `paragraphs_df` CSV file. This conversion facilitates easier processing and integration with applications that support JSON formats.
