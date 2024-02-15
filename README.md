@@ -1,3 +1,3 @@
-# textual Automated Annotation of Court Decisions
+# Textual Automated Annotation of Court Decisions
 ### Colombian Constitutional Court
 
