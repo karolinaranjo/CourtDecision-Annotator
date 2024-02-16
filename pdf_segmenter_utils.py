@@ -19,6 +19,8 @@ from pdf2image import convert_from_path
 import pdf_segmenter_utils as kpdf
 import semantic_annotations_utils as sau
 
+import llm_benchmarking_utils as llm_utils
+
 font_fields=["name", "size", "label"]
 font_field_types=["TEXT", "REAL", "TEXT"]
 fonts_db="fonts_db.db"
@@ -390,8 +392,6 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
     return output_str
 
 
-
-
 def get_paragraphs(text, paragraph_start_tag="<paragraph>", paragraph_end_tag="</paragraph>"):
     """
     Extracts paragraphs from the input text that are enclosed by the specified start and end tags.
@@ -433,6 +433,49 @@ def get_paragraphs(text, paragraph_start_tag="<paragraph>", paragraph_end_tag="<
         
     return paragraphs
 
+#TODO: Check calls to get_paragraphs and see if they can be replaced by get_paragraphs2
+
+def get_paragraphs2(text, paragraph_start_tag="<paragraph>", paragraph_end_tag="</paragraph>"):
+    """
+    Extracts paragraphs from the input text that are enclosed by the specified start and end tags.
+
+    Parameters
+    ----------
+    text :String
+        The text containing the paragraphs to be processed.
+    paragraph_start_tag :String, optional
+        Indicates the start tag that encloses the paragraphs in the input text.
+        The default is "<paragraph>".
+    paragraph_end_tag :String, optional
+        Indicates the end tag that encloses the paragraphs in the input text.
+        The default is "</paragraph>".
+
+    Returns
+    -------
+    paragraphs : list of strings
+        A list of paragraphs in which paragraphs don't include initial or closing tags, only format tags.
+
+    """
+    ini_tag_offset=len(paragraph_start_tag)
+    end_tag_offset=len(paragraph_end_tag)
+    
+    paragraphs=[]
+    
+    start_par_pos=text.find(paragraph_start_tag)
+    
+    while(start_par_pos!=-1):
+        end_par_pos=text.find(paragraph_end_tag)
+        #new paragraph
+        p=text[start_par_pos+ini_tag_offset:end_par_pos]
+        #print("paragraph content:", p) #for testing purposes
+        paragraphs.append(p)
+        #update text by removing processed paragraph
+        text=text[end_par_pos+end_tag_offset:]
+        
+        start_par_pos=text.find(paragraph_start_tag)
+        
+    return paragraphs
+
 def get_first_opening_tag(text):
     '''
     Finds the first opening tag in the input text.
@@ -453,12 +496,12 @@ def get_first_opening_tag(text):
         if len(matches)>0:
             return matches[0].replace("<","").replace(">","")
         else:
-            print("No tag found")
+            print("No opening tag found")
             print(text)
             return "d'oh"
     return  "d'oh"
 
-def get_first_opening_tag2(text):
+def get_first_opening_tag2(text, verbose=False):
     '''
     Finds the first opening tag in the input text.
 
@@ -483,8 +526,8 @@ def get_first_opening_tag2(text):
         if len(matches)>0:
             return matches[0].replace("<","").replace(">","")
         else:
-            print("No tag found")
-            print(text)
+            print("No opening tag found") if verbose==True else ""
+            print(text) if verbose==True else ""
             return "d'oh"
     return  "d'oh"
     
@@ -545,6 +588,40 @@ def get_tags(text):
     processed_tags=list(set(processed_tags))
     
     return tags, processed_tags
+
+def get_initial_tags(text):
+    """
+    Returns two lists of the XML initial tags (<tag>, not closing tags </tag> in the document (with and without delimiters)
+
+    Parameters
+    ----------
+    text : String
+        The text to extract tags from.
+
+    Returns
+    -------
+    tags : list of strings
+        Raw tags including the angle brackets: <tagname>.
+    processed_tags : list of strings
+        Tag names only, no delimiters.
+
+    """
+
+    # initial_tags=re.findall(r"<[^(/><.)]+>", text)
+    initial_tags=re.findall(r"<[^( /><.)]+>", text) #initial tags cannot have '>', '/', ' ', or spaces inside
+    
+    tags=[]
+    processed_tags=[]
+    for t in initial_tags:
+        tags.append(t)
+        processed_tags.append(t[1:-1])
+
+    tags=list(set(tags))
+    processed_tags=list(set(processed_tags))
+    
+    return tags, processed_tags
+
+
         
 def get_most_common_font_size(tags):
     '''
@@ -818,7 +895,14 @@ def remove_tags(text, tags_list):
 
     '''
     for tag in tags_list:
-        text=text.replace("<"+tag+">", "").replace("</"+tag+">", "")
+        
+        #print("current tag", tag)
+        if tag.startswith("font"):
+            #print("tag does indeed start with font")
+            #print("ending_tag is ", tag[:4])
+            text=text.replace("<"+tag+">", "").replace("</"+tag[:4]+">", "")
+        else:
+            text=text.replace("<"+tag+">", "").replace("</"+tag+">", "")
     return text
                 
 def sanitized_xml_from_pdf(file_name, font_db_conn):
@@ -1009,27 +1093,62 @@ def pdf_files_to_sau(input_folder, output_folder, font_db, paragraphs_df=None, s
     return paragraphs_df, styles_df, documents_df
 
 
+
+# def get_tag_instances(tag, text, num_instances):
+
+#     if tag.startswith("font"):
+#         #full_tag=tag
+#         tag=tag[:4]
+
+#     #instances=[]
+
+#     res=""
+#     p = re.compile("<"+tag)
+#     m = p.search(text)
+#     num_instances_found=0
+#     while m!=None and num_instances_found<num_instances:
+#         num_instances_found=num_instances_found+1
+#         #instances.append(m.group())
+#         #instances=instances+m.group()
+#         m = p.search(text, m.end())
+    
+#     p1 = re.compile("</"+tag+">")
+#     m1 = p1.search(text, m.end())
+
+#     res=text[m.start():m1.end()]
+#     return res
+
 def get_tag_instances(tag, text, num_instances):
 
     if tag.startswith("font"):
-        #full_tag=tag
         tag=tag[:4]
 
-    #instances=[]
-
     res=""
+    search_text=text
+    cumm_text=""
     p = re.compile("<"+tag)
-    m = p.search(text)
+    m = p.search(search_text)
     num_instances_found=0
     while m!=None and num_instances_found<num_instances:
         num_instances_found=num_instances_found+1
-        #instances.append(m.group())
-        #instances=instances+m.group()
-        m = p.search(text, m.end())
-    
-    
-    p1 = re.compile("</"+tag+">")
-    m1 = p1.search(text, m.end())
 
-    res=text[m.start():m1.end()]
+        cumm_text=cumm_text+search_text[m.start():m.end()]
+        search_text=search_text[m.end():]
+
+        m = p.search(search_text)
+
+    if num_instances>0:
+        p1 = re.compile("</"+tag+">")
+        m1 = p1.search(search_text)
+
+    res=cumm_text+search_text[:m1.end()]
     return res
+
+def remove_tags_from_paragraphs(paragraphs):
+    new_paragraphs=[]
+    for paragraph in paragraphs:
+        #get tags
+        _, tags = get_initial_tags(paragraph)
+        new_paragraph=remove_tags(paragraph, tags).strip() 
+        new_paragraphs.append(new_paragraph)
+    return new_paragraphs

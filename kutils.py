@@ -77,6 +77,20 @@ def connect_to_db(db_name, t_name, fields=[], field_types=[]):
     conn.commit()
     return conn
 
+def connect_to_font_db(fonts_db="", fonts_table="", font_fields=[], font_field_types=[]):
+    if fonts_db=="":
+        fonts_db="fonts_db.db"
+
+    if fonts_table=="":
+        fonts_table="fonts"
+    if font_fields==[]:
+        font_fields=["name", "size", "label"]
+    if font_field_types==[]:
+        font_field_types=["TEXT", "REAL", "TEXT"]
+
+    font_db_conn=connect_to_db(fonts_db, fonts_table, font_fields, font_field_types)
+    return font_db_conn
+
 def add_db_entry(conn, t_name, fields_to_fill, field_values):
     c=conn.cursor()
     
