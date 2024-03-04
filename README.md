@@ -5,11 +5,12 @@ This repository hosts an automated system designed to process and classify decis
 
 Using some of the functions developed for this endeavor, the user can do the following:
 
-1) Convert RTF files to PDF format.
-2) Convert a PDF file into an XML with tags denoting pages, paragraphs, and text blocks (with format information). The system has advanced capabilities to fix some errors related to parser interpretation of blank spaces
-3) Create a local database of all font types (font name + size) used in a collection of documents.
-4) Analyze a collection of PDF decision documents following the conventions used by the Colombian Constitutional Court and split them in paragraphs and text blocks, assigning to each a section
-5) LLM-Based classification employs GPT-4, Llama-based, FlanT5 for text analysis, classifying paragraphs and text blocks into designated sections of judicial decision documents.
+
+1) **RTF to PDF Conversion**: Streamlines the transformation of RTF documents into PDF format.
+2) **PDF to XML Transformation**: Converts PDFs into XML with tags denoting pages, paragraphs, and text blocks (with format information). The system has advanced capabilities to fix some errors related to parser interpretation of blank spaces.
+3) **Font Database Creation**: Compiles a database of all fonts (name + size) used in decision document collections.
+4) **Document Analysis and Segmentation**: Analyzes a collection of PDF decision documents following the conventions used by the Colombian Constitutional Court, segmenting them into paragraphs and text blocks with assigned sections.
+5) **LLM-Based Classification**: Utilizes GPT-4, Llama, and FlanT5 for analyzing and classifying text into sections within judicial decision documents.
 
 ## How to Run
 
@@ -47,7 +48,7 @@ The code also includes functions for balancing data (`balance_data(...)`) and sp
 4) Few-shot and zero shot
 
 ## Files in the Repository:
-`kutils.py`:  Contains various text processing functions.
-`pdf_segmenter_utils.py`
-`semantic_annotation_utils` : 
-`llm_benchmarking_utils.py`: 
+- `kutils.py`:  Contains various text processing functions.
+- `pdf_segmenter_utils.py`
+- `semantic_annotation_utils` : 
+- `llm_benchmarking_utils.py`: 
