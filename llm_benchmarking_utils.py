@@ -789,6 +789,7 @@ def prepare_document_json_for_section_identification2(doc_xml, doc_name, df_form
 def pdf_files_to_json_for_section_identification_with_llms(input_folder, font_db_conn, paragraphs_df, df_docs, prompt="", num_paragraphs_per_query=5, overlap=2):
     """
     Convert PDF files to JSON for section classification with LLMs (Llama syntax).
+    Paragraphs are wrapped in <paragraph>...</paragraph> tags.
 
     Parameters
     ----------
@@ -836,8 +837,8 @@ def pdf_files_to_json_for_section_identification_with_llms(input_folder, font_db
 
 def pdf_files_to_json_for_section_identification_with_llms2(input_folder, font_db_conn, paragraphs_df, df_docs, prompt="", num_paragraphs_per_query=5, overlap=2):
     """
-    Convert PDF files to JSON for section classification with LLMs (Llama syntax).
-
+    Convert PDF files to JSON without for section classification with LLMs (Llama syntax).
+    
     Parameters
     ----------
     input_folder : str
