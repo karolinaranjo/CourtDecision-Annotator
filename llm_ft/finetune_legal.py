@@ -30,6 +30,50 @@ def main(
         lora_dropout: float = 0.05,
         cutoff_length: int = 256,
 ):
+    """
+    
+
+    Train a model with LoRA (Low-Rank Adaptation of Large Language Models).
+
+    Parameters
+    ----------
+    base_model_name : str, optional
+        The name of the base model. 
+    train_data_path : str, optional
+        Path to the training data. 
+    ckpt_file : str, optional
+        Path to save the checkpoint file.
+    batch_size : int, optional
+        Batch size for training.
+    micro_batch_size : int, optional
+        Micro batch size. Default is 32.
+    num_epochs : int, optional
+        Number of epochs for training.
+    eval_steps : int, optional
+        Number of evaluation steps.
+    logging_steps : int, optional
+        Number of logging steps.
+    warmup_steps : int, optional
+        Number of warmup steps.
+    learning_rate : float, optional
+        Learning rate.
+    val_set_size : int, optional
+        Size of the validation set.
+    lora_r : int, optional
+        LoRA rank parameter.
+    lora_alpha : int, optional
+        LoRA alpha parameter scaling factor.
+    lora_dropout : float, optional
+        LoRA dropout rate.
+    cutoff_length : int, optional
+        Cutoff length for input sequences.
+
+    Raises
+    ------
+    ValueError
+        If the model name is unknown.
+
+    """
     print(f"Fine-tuning {base_model_name} with LoRA ...")
     if 'llama' in base_model_name.lower():
         m = Llama_Lora_es(

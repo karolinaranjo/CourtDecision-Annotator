@@ -4,6 +4,22 @@ import numpy as np
 
 
 def identify_label(text, label_set):
+    """
+    
+
+    Parameters
+    ----------
+    text : TYPE
+        DESCRIPTION.
+    label_set : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
     text = text.lower()
     position_indices = []
     for label in label_set:

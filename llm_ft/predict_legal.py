@@ -24,7 +24,36 @@ def main(
         output_report: str = "data/legal/accuracy_epoch3_r256_alpha256.txt",
         cutoff_length: int = 256,
         k_shot: int = 0,
-):
+        ):
+    """
+    
+
+    Parameters
+    ----------
+    base_model_name : str, optional
+        The path of the base pre-trained language model.
+    ckpt_fie : str, optional
+        Path to the LoRA adapter checkpoint file
+    valid_data_path : str, optional
+        Path to the validation data in JSON format.
+    demo_data_path : str, optional
+        Path to the demonstration data in JSON format.
+    output_file : str, optional
+        Path to save the validation predictions.
+    output_report : str, optional
+        Path to save the evaluation report.
+    cutoff_length : int, optional
+        Cutoff length for tokenization. The default is 256.
+    k_shot : int, optional
+        The number of shots for k-shot learning. The default is 0.
+
+    Raises
+    ------
+    ValueError
+        Name of unknown model.
+        If the specified model name is unknown.
+
+    """
     # print(f"Fine-tuning {base_model_name} with LoRA ...")
     if 'llama' in base_model_name.lower():
         m = Llama_Lora_es(
@@ -40,25 +69,53 @@ def main(
         raise ValueError(f"Unknown model name: {base_model_name}")
         
     pred_labels = m.predict(
-        input_file = valid_data_path,
-        lora_adapter = ckpt_fie,
-        label_set = ["encabezado", "antecedentes", "pretensiones", "intervenciones", "intervención del procurador", "norma(s) demandada(s)", "actuaciones en sede revisión","pruebas", "audiencia(s) pública(s)", "competencia", "consideraciones de la corte", "síntesis de la decisión", "decisión", "firmas", "salvamento de voto", "sin sección"],
-        max_new_tokens = 10,
-        kshot = k_shot,
-        demo_file = demo_data_path,
-        verbose = True,
-    )
+                        input_file = valid_data_path,
+                        lora_adapter = ckpt_fie,
+                        label_set = ["encabezado", 
+                                     "antecedentes", 
+                                     "pretensiones", 
+                                     "intervenciones", 
+                                     "intervención del procurador", 
+                                     "norma(s) demandada(s)", 
+                                     "actuaciones en sede revisión",
+                                     "pruebas", 
+                                     "audiencia(s) pública(s)", 
+                                     "competencia", 
+                                     "consideraciones de la corte", 
+                                     "síntesis de la decisión", 
+                                     "decisión", 
+                                     "firmas", 
+                                     "salvamento de voto", 
+                                     "sin sección"],
+                        max_new_tokens = 10,
+                        kshot = k_shot,
+                        demo_file = demo_data_path,
+                        verbose = True,
+                    )
     with open(output_file, 'w') as fout:
         for text in pred_labels:
             fout.write(text.lower().strip()+'\n')
-    # with open(output_file) as f:
-    #     preds = f.readlines()
-    # pred_labels = [pred.lower().strip() for pred in preds]
 
     with open(valid_data_path) as f:
         labels = json.load(f)
     gt_labels = [label['output'].lower().strip() for label in labels]
-    resport = classification_report(gt_labels, pred_labels, labels=["encabezado", "antecedentes", "pretensiones", "intervenciones", "intervención del procurador", "norma(s) demandada(s)", "actuaciones en sede revisión","pruebas", "audiencia(s) pública(s)", "competencia", "consideraciones de la corte", "síntesis de la decisión", "decisión", "firmas", "salvamento de voto", "sin sección", "none"])
+    resport = classification_report(gt_labels, pred_labels, labels=["encabezado",
+                                                                    "antecedentes", 
+                                                                    "pretensiones", 
+                                                                    "intervenciones", 
+                                                                    "intervención del procurador", 
+                                                                    "norma(s) demandada(s)", 
+                                                                    "actuaciones en sede revisión",
+                                                                    "pruebas", 
+                                                                    "audiencia(s) pública(s)",
+                                                                    "competencia", 
+                                                                    "consideraciones de la corte", 
+                                                                    "síntesis de la decisión", 
+                                                                    "decisión", 
+                                                                    "firmas", 
+                                                                    "salvamento de voto", 
+                                                                    "sin sección", 
+                                                                    "none"])
     print(resport)
     accuracy = accuracy_score(gt_labels, pred_labels)
     print(accuracy)

@@ -24,6 +24,25 @@ class Flan_t5_Lora(LLM_Lora):
                  cutoff_length: int = 256,
                  task_type: str = TaskType.SEQ_2_SEQ_LM
                  ):
+        """
+        Initializes Flan-T5 with LoRA.
+
+        Parameters
+        ----------
+        base_model : str, optional
+            The name of the base model.
+        prompt_template_name : str, optional
+            Name of the prompt template.
+        lora_target_modules : List[str], optional
+            List of LoRA target modules: the query and value layers.
+        load_in_8bit : bool, optional
+            Whether to load the model in 8-bit mode. 
+        cutoff_length : int, optional
+            The maximum length of input sequences.
+        task_type : str, optional
+            The type of task. Default is TaskType.SEQ_2_SEQ_LM.
+
+        """
         LLM_Lora.__init__(self,
                           base_model = base_model,
                           prompt_template_name = prompt_template_name,
@@ -36,6 +55,15 @@ class Flan_t5_Lora(LLM_Lora):
         
         
     def load_base_model(self):
+        """
+        Initializes the base Flan-T5 pre-trained model.
+    
+        Raises
+        ------
+        ValueError
+            If no base model is specified.
+
+        """
         if len(self.base_model) == 0:
             raise ValueError(f"Need to specify a Flan-T5 pre-trained model -- the current base model is {self.base_model}")
         print(f"Load the pre-trained model: {self.base_model}")

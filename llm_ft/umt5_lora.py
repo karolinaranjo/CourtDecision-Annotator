@@ -27,6 +27,8 @@ from peft import (
 
 
 class UMT5_Lora(LLM_Lora):
+    #Class for finetuning Lora
+    
     def __init__(self,
                  base_model: str = "google/umt5-xxl",
                  prompt_template_name: str = "generic",
@@ -35,6 +37,26 @@ class UMT5_Lora(LLM_Lora):
                  cutoff_length: int = 256,
                  task_type: str = TaskType.SEQ_2_SEQ_LM
                  ):
+        """
+        Initializes the UniMax: Farier and More Effective Language Sampling for 
+        Large-Scale Multilingual Pretraining (UMT5) Lora model
+
+        Parameters
+        ----------
+        base_model : str, optional
+            The path or identifier of the pre-trained UMT5 model.
+        prompt_template_name : str, optional
+            The name of the prompt template to use.
+        lora_target_modules : List[str], optional
+            The list of attention modules in the UMT5 model to apply LoRA to.
+        load_in_8bit : bool, optional
+            Whether to load the model in 8-bit format.
+        cutoff_length : int, optional
+            The maximum length of input sequences. Default is 256.
+        task_type : str, optional
+            The type of task the UMT5 model is fine-tuned for.
+
+        """
         LLM_Lora.__init__(self,
                           base_model = base_model,
                           prompt_template_name = prompt_template_name,
@@ -47,6 +69,15 @@ class UMT5_Lora(LLM_Lora):
         
         
     def load_base_model(self):
+        """
+        Initializes the pre-trained UMT5 model.
+
+        Raises
+        ------
+        ValueError
+            If the UMT5 pre-trained model path is not specified.
+
+        """
         if len(self.base_model) == 0:
             raise ValueError(f"Need to specify a UMT5 pre-trained model -- the current base model is {self.base_model}")
         print(f"Load the pre-trained model: {self.base_model}")
@@ -82,6 +113,55 @@ class UMT5_Lora(LLM_Lora):
               wandb_watch: str = "",
               wandb_log_model: str = "",
               ):
+
+        """
+        Trains the UMT5 model with LoRA adapters.
+
+        Parameters
+        ----------
+        data_path : str, optional
+            Path to the training data.
+        output_dir : str, optional
+            Path to save the trained model.
+        batch_size : int, optional
+            Training batch size. The default is 8.
+        micro_batch_size : int, optional
+            Micro batch size. The default is 4.
+        num_epochs : int, optional
+            Number of training epochs. The default is 3.
+        eval_steps : int, optional
+            Number of steps between each evaluation. The default is 5.
+        logging_steps : int, optional
+            Number of steps between each logging. The default is 5.
+        warmup_steps : int, optional
+            Number of warmup steps. The default is 0.
+        learning_rate : float, optional
+            Learning rate. The default is 3e-4.
+        val_set_size : int, optional
+            Size of the validation set. The default is 128.
+        lora_r : int, optional
+            LoRA parameter r. The default is 8.
+        lora_alpha : int, optional
+            LoRA parameter alpha. The default is 16.
+        lora_dropout : float, optional
+            LoRA dropout rate. The default is 0.05.
+        add_eos_token : bool, optional
+            Whether to add end-of-sequence token. The default is True.
+        train_on_inputs : bool, optional
+            Whether to train on input data. The default is False.
+        group_by_length : bool, optional
+            Whether to group data by length. The default is False.
+        wandb_project : str, optional
+            Weights & Biases project name.
+        wandb_run_name : str, optional
+            Weights & Biases run name.
+        wandb_watch : str, optional
+            Weights & Biases watch parameter.
+        wandb_log_model : str, optional
+            Weights & Biases log model parameter.
+
+        """
+
 
         print(f"learning rate: {learning_rate}\n")
         # Load the base model
@@ -181,15 +261,6 @@ class UMT5_Lora(LLM_Lora):
         )
         self.model.config.use_cache = False
 
-        # ===========================================
-        # Save model
-        # Commented the following block to address the empty file issue
-        # old_state_dict = self.model.state_dict
-        # self.model.state_dict = (
-        #     lambda self, *_, **__: get_peft_model_state_dict(
-        #         self, old_state_dict()
-        #     )
-        # ).__get__(self.model, type(self.model))
 
         if torch.__version__ >= "2" and sys.platform != "win32":
             self.model = torch.compile(self.model)
@@ -205,6 +276,30 @@ class UMT5_Lora(LLM_Lora):
               demos: Union[None, List[dict]] = None,
               max_new_tokens: int = 128,
               ):
+        """
+        Evaluates the model.
+
+       Parameters
+       ----------
+       instruction : Union[None, str], optional
+           The instruction for evaluation.
+       input_text : Union[None, str], optional
+           The input text for evaluation.
+       demos : Union[None, List[dict]], optional
+           List of demonstration dictionaries.
+       max_new_tokens : int, optional
+           Maximum number of new tokens to generate. The default is 128.
+    
+       Raises
+       ------
+       ValueError
+           If both instruction and input are None.
+
+       Returns
+       -------
+       str
+           The generated response.
+        """
         # Check the values
         if (instruction is None) or (input is None):
             print(f"Instruction: {instruction}\nInput: {input}")
@@ -218,12 +313,7 @@ class UMT5_Lora(LLM_Lora):
             cutoff_length = self.cutoff_length
         )
         
-        # Manually cut the input length
-        # tokens = prompt.split()
-        # if len(tokens) >= self.cutoff_length:
-        #     print(f"Prompt is too long, manually truncate it to {self.cutoff_length}")
-        #     prompt = " ".join(tokens[:self.cutoff_length])
-        # 
+
         inputs = self.tokenizer(prompt['inputs'], return_tensors="pt", truncation=False)
         if torch.cuda.is_available():
             input_ids = inputs["input_ids"].to("cuda")
@@ -241,12 +331,24 @@ class UMT5_Lora(LLM_Lora):
             )
         s = gen_output.sequences[0] # Get the output token indices
         output = self.tokenizer.decode(s, skip_special_tokens=True) # Map to tokens
-        # del prompt, input_ids, gen_output, s
-        # torch.cuda.empty_cache()
+
         return self.prompter.get_response(output) # Only keep the response part
 
 
     def tokenize(self, prompt):
+        """
+        Tokenizes the prompt.
+
+        Parameters
+        ----------
+        prompt : dict
+            Dictionary containing the inputs and labels for tokenization.
+    
+        Returns
+        -------
+        dict
+            Tokenized inputs and labels.
+        """
         # there's probably a way to do this with the tokenizer settings
         # but again, gotta move fast
         result = self.tokenizer(
@@ -266,13 +368,26 @@ class UMT5_Lora(LLM_Lora):
 
 
     def generate_and_tokenize_prompt(self, data_point):
+        """
+        Generates and tokenizes the prompt.
+
+        Parameters
+        ----------
+        data_point : dict
+           Dictionary containing the instruction, input, and output data.
+    
+        Returns
+        -------
+        tokenized_full_prompt: dict
+           Tokenized full prompt.
+        """
         full_prompt = self.prompter.generate_seq2seq_prompt(
             data_point["instruction"],
             data_point["input"],
             data_point["output"],
             cutoff_length = self.cutoff_length
         )
-        # print('full_prompt', full_prompt)
+
         tokenized_full_prompt = self.tokenize(full_prompt)
-        # print('tokenized_full_prompt', tokenized_full_prompt)
+
         return tokenized_full_prompt

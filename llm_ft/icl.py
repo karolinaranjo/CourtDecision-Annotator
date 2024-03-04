@@ -6,10 +6,22 @@ import numpy as np
 
 
 class ICL_Demos(object):
+    
     def __init__(self,
                  demos: List[dict] = [],
                  kshot: int = 1,
                  ):
+        """
+        Initializes an instance of the In-Context Learning.
+        
+        Parameters
+        ----------
+        demos : List[dict], optional
+            List of demonstrations. 
+        kshot : int, optional
+            The number of examples for in-context learning.
+
+        """
         self.demos = demos
         self.kshot = kshot
         self.N = len(demos)
@@ -18,6 +30,26 @@ class ICL_Demos(object):
     def generate(self,
                  method: str = "random",
                  ):
+        """
+        Generates a subset of demonstrations for in-context learning.
+    
+        Parameters
+        ----------
+        method : str, optional
+            The method used for generating the subset.
+    
+        Raises
+        ------
+        ValueError
+            If there are no demonstrations for in-context learning.
+        NotImplementedError
+            If the specified generation method is not implemented.
+    
+        Returns
+        -------
+        subset : TYPE
+            The generated subset of demonstrations.
+        """
         if self.N <= 0:
             raise ValueError("No demonstrations for ICL")
         # generation function
@@ -30,6 +62,14 @@ class ICL_Demos(object):
 
 
     def _random_sample(self):
+        """
+        Samples a subset of demonstrations.
+
+        Returns
+        -------
+        subset : List[dict]
+            The randomly selected subset of demonstrations.
+        """
         inds = np.random.choice(self.N, self.kshot, replace=False)
         subset = [self.demos[idx] for idx in list(inds)]
         return subset

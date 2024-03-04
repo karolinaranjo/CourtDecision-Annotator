@@ -21,6 +21,22 @@ class Llama_Lora_es(LLM_Lora):
                  load_in_8bit: bool = True,
                  cutoff_length: int = 256,
                  ):
+        """
+        Initialize the Llama Lora model for Spanish language.
+
+        Parameters
+        ----------
+        base_model : str, optional
+            The name or path of the base language model.
+        prompt_template_name : str, optional
+            The name of the prompt template. The default is "generic".
+        lora_target_modules : List[str], optional
+            The target modules for LoRA. The default is ["q_proj", "v_proj"].
+        load_in_8bit : bool, optional
+            Whether to load the model in 8-bit mode. The default is True.
+        cutoff_length : int, optional
+            The cutoff length for tokenization. The default is 256.
+        """
         LLM_Lora.__init__(self,
                           base_model = base_model,
                           prompt_template_name = prompt_template_name,
@@ -32,6 +48,15 @@ class Llama_Lora_es(LLM_Lora):
 
 
     def load_base_model(self):
+        """
+        Load the base language model for preparation.
+
+        Raises
+        ------
+        ValueError
+            If the base_model attribute is empty.
+
+        """
         # Load the model for preparation
         if len(self.base_model) == 0:
             raise ValueError(f"The base_model is {self.base_model}")
