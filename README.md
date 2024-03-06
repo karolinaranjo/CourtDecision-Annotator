@@ -17,14 +17,14 @@ Using some of the functions developed for this endeavor, the user can do the fol
 To run the full system, it is necessary to accomplish three tasks:
 
 1) Convert PDF Files to Pandas DataFrames
-   To process an entire folder, run the function `pdf_files_to_sau` found in `pdf_segmenter_utils.py`:
-
 ```python
-paragraphs_df, styles_df, documents_df = pdf_files_to_sau(  source_folder,
-                                                            target_folder,
-                                                            font_db_conn,
-                                                            paragraphs_df=None,
-                                                            styles_df=None)
+import pdf_segmenter_utils as kpdf
+paragraphs_df, styles_df, documents_df = kpdf.pdf_files_to_sau(   source_folder,
+                                                                  target_folder,
+                                                                  font_db_conn,
+                                                                  paragraphs_df=None,
+                                                                  styles_df=None
+                                                               )
 ```
 
 The function will return three Pandas dataframes ready for further processing.
@@ -34,6 +34,7 @@ The function will return three Pandas dataframes ready for further processing.
 To assign sections to each row of the relevant dataframes, run the function `update_sections_all_documents(...)` found in `semantic_annotations_utils.py`:
 
 ```python
+import semantic_annotations_utils as sau
 paragraphs_df, styles_df, documents_df=update_sections_all_documents(paragraphs_df, styles_df, documents_df)
 ```
 
