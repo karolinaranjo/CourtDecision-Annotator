@@ -20,7 +20,11 @@ To run the full system, it is necessary to accomplish three tasks:
    To process an entire folder, run the function `pdf_files_to_sau` found in `pdf_segmenter_utils.py`:
 
 ```python
-paragraphs_df, styles_df, documents_df = pdf_segmenter_utils.pdf_files_to_sau(source_folder, target_folder, font_db_conn, paragraphs_df=None, styles_df=None)
+paragraphs_df, styles_df, documents_df = pdf_files_to_sau(  source_folder,
+                                                            target_folder,
+                                                            font_db_conn,
+                                                            paragraphs_df=None,
+                                                            styles_df=None)
 ```
 
 The function will return three Pandas dataframes ready for further processing.
