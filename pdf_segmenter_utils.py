@@ -309,55 +309,68 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
     curr_font=""
     curr_size=-1
     curr_label=""
+    curr_page=1
     
     font_closing_tag='</font>'
     label_closing_tag=''
     tag_closed=True
     
     
-    for page_layout in pages:
+    for page_num, page_layout in enumerate(pages):
         output_str=output_str+"<page>\n"
 
-        for element in page_layout:
+        for element_ind, element in enumerate(page_layout):
             if isinstance(element,LTTextContainer):
-                output_str=output_str+"<paragraph>\n"
+                aux_output_str="<paragraph>\n"
                 for text_line in element:
                     if isinstance(text_line, LTTextLine):
                         output_str=output_str+" "
                         for character in text_line:
                             if isinstance(character, LTChar):
                                 if character.fontname==curr_font and character.size==curr_size: #if it's still same type
-                                    output_str=output_str+character.get_text()
+                                    aux_output_str+=character.get_text()
                                 else: #if font type changed
                                     if curr_font!="": #if it's not the beginning of the file, close previous tag
                                         tag_closed=True
                                         if font_info==True:
-                                            output_str=output_str+font_closing_tag
+                                            aux_output_str+=font_closing_tag
                                         else:
-                                            output_str=output_str+label_closing_tag
+                                            aux_output_str+=label_closing_tag
                                         
                                     # get new properties
                                     curr_font=character.fontname
                                     curr_size=character.size
                                     curr_label=find_font_label(font_db_conn, curr_font, curr_size)
                                     if font_info==True:
-                                        output_str=output_str+r'<font='+curr_font+str(round(curr_size))+'>'+character.get_text()
+                                        aux_output_str+=r'<font='+curr_font+str(round(curr_size))+'>'+character.get_text()
                                     else:
-                                        output_str=output_str+r'<'+curr_label+'>'+character.get_text()
+                                        aux_output_str+=r'<'+curr_label+'>'+character.get_text()
                                         label_closing_tag='</'+curr_label+'>'
                                     tag_closed=False
                 if tag_closed==False:
                     if font_info==True:
-                        output_str=output_str+font_closing_tag
+                        aux_output_str+=font_closing_tag
                     else:
-                        output_str=output_str+label_closing_tag
+                        aux_output_str+=label_closing_tag
 
                     curr_font="" #reset tags to start new paragraph
                     tag_closed=True
-                output_str=output_str+"\n</paragraph>\n"
+                aux_output_str+="\n</paragraph>\n"
+
+
                 #replace multiple spaces with single space in output_str
-                output_str=re.sub(' +', ' ', output_str) #useful, but we loose the ability to detect parsing errors
+                aux_output_str= re.sub(' +', ' ', aux_output_str) #useful, but we lose the ability to detect parsing errors
+
+                print("aux_output_str: "+aux_output_str)
+                #extract_text
+                paragraph=get_paragraphs2(aux_output_str)
+                paragraph_txt=remove_tags_from_paragraphs(paragraph)[0]
+                print("aux_output_str cleaned:", paragraphs_to_text)
+
+                output_str=output_str + aux_output_str
                 
+
+
         output_str=output_str+"\n</page>\n"
     
     output_str=output_str+r"</document>"
