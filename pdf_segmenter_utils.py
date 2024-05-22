@@ -319,12 +319,16 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
     for page_num, page_layout in enumerate(pages):
         output_str=output_str+"<page>\n"
 
+        page_paragraph=0
+
         for element_ind, element in enumerate(page_layout):
             if isinstance(element,LTTextContainer):
+                page_paragraph=page_paragraph+1
+                # include_paragraph=True
                 aux_output_str="<paragraph>\n"
                 for text_line in element:
                     if isinstance(text_line, LTTextLine):
-                        output_str=output_str+" "
+                        aux_output_str=aux_output_str+" "
                         for character in text_line:
                             if isinstance(character, LTChar):
                                 if character.fontname==curr_font and character.size==curr_size: #if it's still same type
@@ -336,7 +340,7 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
                                             aux_output_str+=font_closing_tag
                                         else:
                                             aux_output_str+=label_closing_tag
-                                        
+
                                     # get new properties
                                     curr_font=character.fontname
                                     curr_size=character.size
@@ -357,7 +361,6 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
                     tag_closed=True
                 aux_output_str+="\n</paragraph>\n"
 
-
                 #replace multiple spaces with single space in output_str
                 aux_output_str= re.sub(' +', ' ', aux_output_str) #useful, but we lose the ability to detect parsing errors
 
@@ -365,13 +368,29 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
                 #extract_text
                 paragraph=get_paragraphs2(aux_output_str)
                 paragraph_txt=remove_tags_from_paragraphs(paragraph)[0]
-                print("aux_output_str cleaned:", paragraphs_to_text)
-
-                output_str=output_str + aux_output_str
                 
+                print("aux_output_str cleaned:", paragraph_txt)
 
+                if len(paragraph_txt)<5 and paragraph_txt.isdigit() and int(paragraph_txt)==curr_page:
+                    print("Page number detected")
+                    print(paragraph_txt)
+                    print("text with tags", paragraph[0])
+                    #split string into initial tag, body, and closing tag
+                    p=paragraph[0]
+                    first=p[0:p.find(">")+1]
+                    last=p[p.rfind("<"):]
+                    body=p[p.find(">")+1:p.rfind("<")]
+                    aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+last+"</paragraph>"
+                    print("aux_output_str with page number", aux_output_str)
+                    #curr_page=int(paragraph_txt)
+                    #aux_output_str="<paragraph><page_number>"+str(curr_page)+"</page_number></paragraph>"
+                    # include_paragraph=False
+                # if include_paragraph==True:
+                 
+                output_str=output_str + aux_output_str
 
         output_str=output_str+"\n</page>\n"
+        curr_page=curr_page+1
     
     output_str=output_str+r"</document>"
     return output_str
