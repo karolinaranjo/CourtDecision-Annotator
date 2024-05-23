@@ -364,28 +364,24 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
                 #replace multiple spaces with single space in output_str
                 aux_output_str= re.sub(' +', ' ', aux_output_str) #useful, but we lose the ability to detect parsing errors
 
-                print("aux_output_str: "+aux_output_str)
+                # print("aux_output_str: "+aux_output_str)
                 #extract_text
                 paragraph=get_paragraphs2(aux_output_str)
                 paragraph_txt=remove_tags_from_paragraphs(paragraph)[0]
                 
-                print("aux_output_str cleaned:", paragraph_txt)
+                # print("aux_output_str cleaned:", paragraph_txt)
 
                 if len(paragraph_txt)<5 and paragraph_txt.isdigit() and int(paragraph_txt)==curr_page:
-                    print("Page number detected")
-                    print(paragraph_txt)
-                    print("text with tags", paragraph[0])
+                    # print("Page number detected")
+                    # print(paragraph_txt)
+                    # print("text with tags", paragraph[0])
                     #split string into initial tag, body, and closing tag
                     p=paragraph[0]
                     first=p[0:p.find(">")+1]
                     last=p[p.rfind("<"):]
                     body=p[p.find(">")+1:p.rfind("<")]
                     aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+last+"</paragraph>"
-                    print("aux_output_str with page number", aux_output_str)
-                    #curr_page=int(paragraph_txt)
-                    #aux_output_str="<paragraph><page_number>"+str(curr_page)+"</page_number></paragraph>"
-                    # include_paragraph=False
-                # if include_paragraph==True:
+                    #print("aux_output_str with page number", aux_output_str)
                  
                 output_str=output_str + aux_output_str
 

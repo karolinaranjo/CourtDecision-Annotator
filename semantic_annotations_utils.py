@@ -41,10 +41,15 @@ def get_text_type(tag, tagless_text, usual_font_size):
     #use font size to establish type
     if fs>usual_font_size:
         text_type=add_info_to_string(text_type,"title")
-        
-    elif fs<usual_font_size:
+
+    elif tagless_text.startswith("Página No."):
+        text_type=add_info_to_string(text_type,"page_number")
+
+    # elif fs<usual_font_size:
+    #     text_type=add_info_to_string(text_type,"footnote")
+
+    elif fs<=usual_font_size-4:
         text_type=add_info_to_string(text_type,"footnote")
-        
     
     if tagless_text.isupper() and "title" not in text_type:
         text_type=add_info_to_string(text_type,"emphasis") 
@@ -1431,14 +1436,13 @@ def get_decision_id(filename, documents_df):
     doc_id=row["id"]
     return doc_id
 
-def footnote_remapping(paragraphs_df, styles_df):
+def footnote_remapping(styles_df):
+#def footnote_remapping(paragraphs_df, styles_df):
     """
     Migrates footnotes from v1 to v2 to make them more readable.
 
     Parameters
     ----------
-    paragraphs_df : pd.DataFrame
-        A dataframe containing information about the paragraphs.
     styles_df : pd.DataFrame
         A dataframe containing information about the excerpts.
 
@@ -1458,6 +1462,5 @@ def footnote_remapping(paragraphs_df, styles_df):
         if row['paragraph_pos']>5 and row['length']<10: #it must be a footnote number 
             styles_df.loc[index, 'text_type']="footnote number"
             styles_df.loc[index, 'text_type_es']="número de pie de página"
-
 
     return styles_df
