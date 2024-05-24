@@ -38,32 +38,41 @@ def get_text_type(tag, tagless_text, usual_font_size):
     fs=kpdf.get_trailing_number(tag)
     
     text_type=""
+    text_type_es=""
     #use font size to establish type
     if fs>usual_font_size:
         text_type=add_info_to_string(text_type,"title")
+        text_type_es=add_info_to_string(text_type_es,"título")
 
     elif tagless_text.startswith("Página No."):
         text_type=add_info_to_string(text_type,"page_number")
+        text_type_es=add_info_to_string(text_type_es,"número de página")
 
     # elif fs<usual_font_size:
     #     text_type=add_info_to_string(text_type,"footnote")
 
     elif fs<=usual_font_size-4:
         text_type=add_info_to_string(text_type,"footnote")
+        text_type_es=add_info_to_string(text_type_es,"pie de página")
     
     if tagless_text.isupper() and "title" not in text_type:
-        text_type=add_info_to_string(text_type,"emphasis") 
+        text_type=add_info_to_string(text_type,"emphasis")
+        text_type_es=add_info_to_string(text_type_es,"énfasis") 
+
 
     if "italic" in tag:
         text_type=add_info_to_string(text_type,"quote")
+        text_type_es=add_info_to_string(text_type_es,"cita")
     
     if "bold" in tag and "emphasis" not in text_type:
         text_type=add_info_to_string(text_type,"emphasis")
+        text_type_es=add_info_to_string(text_type_es,"énfasis")
    
     if text_type=="":
         text_type="plain"
+        text_type_es="normal"
 
-    return text_type
+    return text_type, text_type_es
 
 
 def add_info_to_string(old_str, param):
@@ -142,7 +151,7 @@ def process_paragraph_text(text, doc_id, paragraph_id, paragraph_text, df, usual
             cursor=cursor+ini_tagged+len(tagged_text)
             
             #get text type
-            text_type = get_text_type(first_tag, tagless_text, usual_font_size)
+            text_type, text_type_es = get_text_type(first_tag, tagless_text, usual_font_size)
             
             #add to list of text types
             par_info.append((text_type, text_length))
@@ -151,7 +160,7 @@ def process_paragraph_text(text, doc_id, paragraph_id, paragraph_text, df, usual
             doc_pos=paragraph_doc_pos + paragraph_pos
             
             #save to dataframe
-            df.loc[len(df)] = [doc_id, paragraph_id, "Pending", text_type, text_length, doc_pos, paragraph_pos, "Pending", tagless_text]
+            df.loc[len(df)] = [doc_id, paragraph_id, "Pending", text_type, text_type_es, text_length, doc_pos, paragraph_pos, tagless_text]
 
             #save to xml
             par_xml+="<"+text_type+">"+tagless_text+"</"+text_type+">"
@@ -201,7 +210,8 @@ def get_semantic_blocks_from_XML(full_text, doc_id, paragraphs_df=None, styles_d
     if styles_df is None:
         print("Creating new styles dataframe...")
         
-        styles_df=pd.DataFrame(columns=['document', 'paragraph_id', 'section', 'text_type', 'length','document_pos', 'paragraph_pos', 'function','text'])
+        #styles_df=pd.DataFrame(columns=['document', 'paragraph_id', 'section', 'text_type', 'length','document_pos', 'paragraph_pos', 'function','text'])
+        styles_df=pd.DataFrame(columns=['document', 'paragraph_id', 'section', 'text_type', 'text_type_es', 'length', 'document_pos', 'paragraph_pos', 'text'])
         #name index column
         styles_df.index.name = 'id'
 
@@ -1437,7 +1447,6 @@ def get_decision_id(filename, documents_df):
     return doc_id
 
 def footnote_remapping(styles_df):
-#def footnote_remapping(paragraphs_df, styles_df):
     """
     Migrates footnotes from v1 to v2 to make them more readable.
 
@@ -1448,11 +1457,9 @@ def footnote_remapping(styles_df):
 
     Returns
     -------
-    paragraphs_df : pd.DataFrame
-        Updated dataframe...
     styles_df : pd.DataFrame
-        Updated dataframe...
-
+        Updated dataframe with remapped footnotes.
+    
     """
 
     #get all excerpts of type "footnote"
@@ -1460,7 +1467,24 @@ def footnote_remapping(styles_df):
 
     for index, row in footnotes.iterrows():
         if row['paragraph_pos']>5 and row['length']<10: #it must be a footnote number 
-            styles_df.loc[index, 'text_type']="footnote number"
+            styles_df.loc[index, 'text_type']="footnote_number"
             styles_df.loc[index, 'text_type_es']="número de pie de página"
+    
+    #find rows in which text_type is "footnote"
+    footnotes=styles_df[ (styles_df['text_type']!='footnote_number') & (styles_df['text_type'].str.startswith('footnote')) ]
+
+    for index, row in footnotes.iterrows():
+        #find rows that belong to the same paragraph and document
+        same_paragraph=styles_df[(styles_df['document']==row['document']) & (styles_df['paragraph_id']==row['paragraph_id'])]
+        for ind, par in same_paragraph.iterrows():
+            #if text_type doesn't contain "footnote"
+            if "footnote" not in par['text_type']:
+                if par['text_type']=="plain":
+                    styles_df.loc[ind, 'text_type']="footnote"
+                    styles_df.loc[ind, 'text_type_es']="pie de página"
+                else:
+                    styles_df.loc[ind, 'text_type']="footnote_"+par['text_type']
+                    styles_df.loc[ind, 'text_type_es']="pie de página "+par['text_type_es']
+
 
     return styles_df
