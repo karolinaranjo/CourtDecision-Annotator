@@ -378,9 +378,11 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
                     #split string into initial tag, body, and closing tag
                     p=paragraph[0]
                     first=p[0:p.find(">")+1]
-                    last=p[p.rfind("<"):]
-                    body=p[p.find(">")+1:p.rfind("<")]
-                    aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+last+"</paragraph>"
+                    #last=p[p.rfind("<"):]
+                    tag=get_first_opening_tag2(first)
+                    #body=p[p.find(">")+1:p.rfind("<")]
+                    #aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+last+"</paragraph>"
+                    aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+"</"+tag+"></paragraph>"
                     #print("aux_output_str with page number", aux_output_str)
                  
                 output_str=output_str + aux_output_str
@@ -725,6 +727,11 @@ def get_text_between_tags2(text, tag):
     p_end = re.compile(re.escape("</"+tag+">"))
     m_end = p_end.search(text)
 
+    if m_end is None:
+        print("No closing tag found")
+        print("text", text)
+        print("tag", tag)
+
     #get text in between tags
     ini_pos=m_ini.start()+len("<"+tag+">")
     ini_tagless=ini_pos
@@ -842,11 +849,11 @@ def get_images_from_pdfs(input_folder, output_folder):
     '''
     
     files=os.listdir(input_folder)
-    for f in files:
+    for ind, f in enumerate(files):
         name_base=f[:-4]
         pdf_path=join(input_folder,f)
         pdf_path_aux=pdf_path.lower()
-        print("File to be processed: "+pdf_path)
+        print("File to be processed ("+str(ind)+"/"+len(files)+"): "+pdf_path)
         if pdf_path_aux.endswith(".pdf"):
             images=convert_from_path(pdf_path)
             #get images
