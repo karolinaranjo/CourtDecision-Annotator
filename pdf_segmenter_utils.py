@@ -373,16 +373,20 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
 
                 if len(paragraph_txt)<5 and paragraph_txt.isdigit() and int(paragraph_txt)==curr_page:
                     # print("Page number detected")
-                    # print(paragraph_txt)
+                    #print(paragraph_txt)
                     # print("text with tags", paragraph[0])
                     #split string into initial tag, body, and closing tag
                     p=paragraph[0]
                     first=p[0:p.find(">")+1]
                     #last=p[p.rfind("<"):]
-                    tag=get_first_opening_tag2(first)
+                    #tag=get_first_opening_tag2(first)
+                    #print("tag is", tag)
                     #body=p[p.find(">")+1:p.rfind("<")]
-                    #aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+last+"</paragraph>"
-                    aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+"</"+tag+"></paragraph>"
+                    last=first.replace("<", "</").replace("\n", "")
+                    aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+last+"\n"+"</paragraph>"
+                    #print("aux_output_str with page number\n", aux_output_str)
+                    #aux_output_str="<paragraph>"+first+"Página No. "+paragraph_txt+"</"+tag+"></paragraph>"
+
                     #print("aux_output_str with page number", aux_output_str)
                  
                 output_str=output_str + aux_output_str
@@ -729,8 +733,8 @@ def get_text_between_tags2(text, tag):
 
     if m_end is None:
         print("No closing tag found")
-        print("text", text)
-        print("tag", tag)
+        print("text:", text)
+        print("tag:", tag)
 
     #get text in between tags
     ini_pos=m_ini.start()+len("<"+tag+">")
@@ -853,7 +857,7 @@ def get_images_from_pdfs(input_folder, output_folder):
         name_base=f[:-4]
         pdf_path=join(input_folder,f)
         pdf_path_aux=pdf_path.lower()
-        print("File to be processed ("+str(ind)+"/"+len(files)+"): "+pdf_path)
+        print("File to be processed ("+str(ind)+"/"+str(len(files))+"): "+pdf_path)
         if pdf_path_aux.endswith(".pdf"):
             images=convert_from_path(pdf_path)
             #get images
@@ -1119,9 +1123,9 @@ def pdf_files_to_sau(input_folder, output_folder, font_db, paragraphs_df=None, s
     py_input_folder=input_folder.replace(r"\~", "~").replace(r"\ ", " ")    
     files=os.listdir(py_input_folder)
 
-    for f in files:
+    for ind, f in enumerate(files):
         file_path=join(input_folder,f)
-        print("File to be processed: "+file_path)
+        print("File to be processed ("+str(ind)+"/"+str(len(files))+"): "+file_path)
         if file_path.endswith(".pdf"):
             paragraphs_df, styles_df, documents_df=pdf_file_to_sau(file_path, output_folder, font_db, paragraphs_df, styles_df, documents_df)
     
