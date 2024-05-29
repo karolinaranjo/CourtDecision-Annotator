@@ -1,6 +1,6 @@
 import pandas as pd
 import pickle
-from pdfminer.layout import LTTextContainer, LTTextLine, LTChar
+from pdfminer.layout import LTTextContainer, LTTextLine, LTChar, LAParams
 from pdfminer.high_level import extract_pages, extract_text
 import re
 import kutils as krusty
@@ -299,10 +299,12 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
         paragraphs, and font or label tags.
     '''
     
+    laparams = LAParams(char_margin=4) #default char margin is 2
+
     if maxpages==-1:
-        pages=extract_pages(file_name)
+        pages=extract_pages(file_name, laparams=laparams)
     else:
-        pages=extract_pages(file_name,maxpages=maxpages)
+        pages=extract_pages(file_name,maxpages=maxpages, laparams=laparams)
     
     output_str="<document>\n"
     

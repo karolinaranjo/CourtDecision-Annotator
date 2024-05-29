@@ -59,12 +59,11 @@ def get_text_type(tag, tagless_text, usual_font_size):
         text_type=add_info_to_string(text_type,"emphasis")
         text_type_es=add_info_to_string(text_type_es,"énfasis") 
 
-
-    if "italic" in tag:
+    if "italic" in tag and "footnote_number" not in text_type:
         text_type=add_info_to_string(text_type,"quote")
         text_type_es=add_info_to_string(text_type_es,"cita")
     
-    if "bold" in tag and "emphasis" not in text_type:
+    if "bold" in tag and "emphasis" not in text_type and "footnote_number" not in text_type:
         text_type=add_info_to_string(text_type,"emphasis")
         text_type_es=add_info_to_string(text_type_es,"énfasis")
    
@@ -139,6 +138,7 @@ def process_paragraph_text(text, doc_id, paragraph_id, paragraph_text, df, usual
     par_xml=""
     par_info=[]
     cursor=0
+    cursor_untagged=0
 
     if first_tag!="d'oh": #if there are tags to be processed
         
@@ -148,7 +148,7 @@ def process_paragraph_text(text, doc_id, paragraph_id, paragraph_text, df, usual
             tagless_text, tagged_text, ini_tagless, ini_tagged=kpdf.get_text_between_tags2(new_text, first_tag)
             
             text_length=len(tagless_text)
-            cursor=cursor+ini_tagged+len(tagged_text)
+            #cursor=cursor+ini_tagged+len(tagged_text)
             
             #get text type
             text_type, text_type_es = get_text_type(first_tag, tagless_text, usual_font_size)
@@ -156,7 +156,12 @@ def process_paragraph_text(text, doc_id, paragraph_id, paragraph_text, df, usual
             #add to list of text types
             par_info.append((text_type, text_length))
             
-            paragraph_pos= paragraph_text.find(tagless_text)
+            #get the position within the paragraph
+            paragraph_pos=cursor_untagged
+            #paragraph_pos=new_text.find(tagless_text)+paragraph_doc_pos
+            #paragraph_pos= paragraph_text.find(tagless_text)
+
+            #TODO: fix paragraph pos so that it searches for the latest occurrence of the text
             doc_pos=paragraph_doc_pos + paragraph_pos
             
             #save to dataframe
@@ -165,6 +170,9 @@ def process_paragraph_text(text, doc_id, paragraph_id, paragraph_text, df, usual
             #save to xml
             par_xml+="<"+text_type+">"+tagless_text+"</"+text_type+">"
             
+            cursor=cursor+ini_tagged+len(tagged_text)
+            cursor_untagged=cursor_untagged+len(tagless_text)
+
             new_text=text[cursor:]
             first_tag=kpdf.get_first_opening_tag(new_text)
             if first_tag=="d'oh": #no inner tag, we're done
@@ -1463,15 +1471,17 @@ def footnote_remapping(styles_df):
     """
 
     #get all excerpts of type "footnote"
-    footnotes=styles_df[styles_df['text_type'].str.startswith('footnote')]
+    #footnotes=styles_df[styles_df['text_type'].str.startswith('footnote')]
+    footnotes=styles_df[styles_df['text_type'].str.contains('footnote')]
 
     for index, row in footnotes.iterrows():
         if row['paragraph_pos']>5 and row['length']<10: #it must be a footnote number 
             styles_df.loc[index, 'text_type']="footnote_number"
             styles_df.loc[index, 'text_type_es']="número de pie de página"
-    
-    #find rows in which text_type is "footnote"
-    footnotes=styles_df[ (styles_df['text_type']!='footnote_number') & (styles_df['text_type'].str.startswith('footnote')) ]
+
+    #find rows in which text_type is footnote_something (but not footnote_number)
+    #footnotes=styles_df[ (styles_df['text_type']!='footnote_number') & (styles_df['text_type'].str.startswith('footnote')) ]
+    footnotes=styles_df[ (styles_df['text_type']!='footnote_number') & (styles_df['text_type'].str.contains('footnote')) ]
 
     for index, row in footnotes.iterrows():
         #find rows that belong to the same paragraph and document
