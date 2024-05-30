@@ -54,18 +54,20 @@ def get_text_type(tag, tagless_text, usual_font_size):
     elif fs<=usual_font_size-4:
         text_type=add_info_to_string(text_type,"footnote")
         text_type_es=add_info_to_string(text_type_es,"pie de página")
-    
-    if tagless_text.isupper() and "title" not in text_type:
-        text_type=add_info_to_string(text_type,"emphasis")
-        text_type_es=add_info_to_string(text_type_es,"énfasis") 
 
-    if "italic" in tag and "footnote_number" not in text_type:
-        text_type=add_info_to_string(text_type,"quote")
-        text_type_es=add_info_to_string(text_type_es,"cita")
+    if "page_number" not in text_type:
     
-    if "bold" in tag and "emphasis" not in text_type and "footnote_number" not in text_type:
-        text_type=add_info_to_string(text_type,"emphasis")
-        text_type_es=add_info_to_string(text_type_es,"énfasis")
+        if tagless_text.isupper() and "title" not in text_type:
+            text_type=add_info_to_string(text_type,"emphasis")
+            text_type_es=add_info_to_string(text_type_es,"énfasis") 
+
+        if "italic" in tag and "footnote_number" not in text_type:
+            text_type=add_info_to_string(text_type,"quote")
+            text_type_es=add_info_to_string(text_type_es,"cita")
+        
+        if "bold" in tag and "emphasis" not in text_type and "footnote_number" not in text_type:
+            text_type=add_info_to_string(text_type,"emphasis")
+            text_type_es=add_info_to_string(text_type_es,"énfasis")
    
     if text_type=="":
         text_type="plain"
@@ -1482,6 +1484,24 @@ def footnote_remapping(styles_df):
     #find rows in which text_type is footnote_something (but not footnote_number)
     #footnotes=styles_df[ (styles_df['text_type']!='footnote_number') & (styles_df['text_type'].str.startswith('footnote')) ]
     footnotes=styles_df[ (styles_df['text_type']!='footnote_number') & (styles_df['text_type'].str.contains('footnote')) ]
+
+    for index, row in footnotes.iterrows():
+        #find previous row that belongs to the same paragraph using paragraph position
+        aux_previous=styles_df[(styles_df['document']==row['document']) & (styles_df['paragraph_id']==row['paragraph_id']) & (styles_df['paragraph_pos']<row['paragraph_pos'])]
+        if len(aux_previous)>0:
+            #get previous block
+            previous_block=aux_previous.loc[aux_previous['paragraph_pos'].idxmax()]
+            if previous_block['text_type']=="page_number":
+                #remove footnote from text type in the current row and all following rows that belong to the same paragraph
+                styles_ahead_df=styles_df[(styles_df['document']==row['document']) & (styles_df['paragraph_id']==row['paragraph_id']) & (styles_df['paragraph_pos']>=row['paragraph_pos'])]
+                for ind, r in styles_ahead_df.iterrows():
+                    styles_df.loc[ind, 'text_type']=r['text_type'].replace("footnote_", "").strip("_")
+                    styles_df.loc[ind, 'text_type_es']=r['text_type_es'].replace("pie de página ", "").strip(" ")
+               
+
+                 
+
+
 
     for index, row in footnotes.iterrows():
         #find rows that belong to the same paragraph and document
