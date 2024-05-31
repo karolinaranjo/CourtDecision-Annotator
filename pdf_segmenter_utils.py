@@ -166,8 +166,11 @@ def detect_paragraph_anomalies(paragraphs, text, verbose=False):
                 j=len(new_paragraphs)-1
                 found=False
                 while found==False and j>=0:
+                    pp_initial_tag=get_first_opening_tag(new_paragraphs[j])
+                    ppi_size=get_trailing_number(pp_initial_tag)
+                    #print("ppi_size: "+str(ppi_size)) if verbose==True else ""
                     #if pf_size==get_paragraph_font_size(new_paragraphs[j]): #paragraphs that are joined must have the same font size to match
-                    if pf_size==get_paragraph_font_size(new_paragraphs[j]) and "Página No." not in new_paragraphs[j]: #paragraphs that are joined must have the same font size to match
+                    if pf_size==get_paragraph_font_size(new_paragraphs[j]) and "Página No." not in new_paragraphs[j] and ppi_size>=text_size: #paragraphs that are joined must have the same font size to match
                         found=True
                         end_tag=get_last_closing_tag(new_paragraphs[j])
                         ini_tag=get_first_opening_tag(paragraphs[i])
@@ -397,6 +400,7 @@ def pdf_to_labeled_text(file_name, font_db_conn, maxpages=-1, font_info=False):
                     #print("aux_output_str with page number", aux_output_str)
                  
                 output_str=output_str + aux_output_str
+        
         if page_number_found==False:
             if font_info==True:
                 output_str+="\n<paragraph>\n<font=Arial12>Página No. "+str(curr_page)+"</font>\n</paragraph>\n"

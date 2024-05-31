@@ -1499,10 +1499,6 @@ def footnote_remapping(styles_df):
                     styles_df.loc[ind, 'text_type_es']=r['text_type_es'].replace("pie de página ", "").strip(" ")
                
 
-                 
-
-
-
     for index, row in footnotes.iterrows():
         #find rows that belong to the same paragraph and document
         same_paragraph=styles_df[(styles_df['document']==row['document']) & (styles_df['paragraph_id']==row['paragraph_id'])]
