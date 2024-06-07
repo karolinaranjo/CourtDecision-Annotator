@@ -9,7 +9,6 @@ import os
 from os.path import isfile, join
 from pdf2image import convert_from_path
 
-import pdf_segmenter_utils as kpdf
 import semantic_annotations_utils as sau
 
 import llm_benchmarking_utils as llm_utils
@@ -1068,7 +1067,7 @@ def pdf_file_to_sau(file_name, target_folder, font_db_conn, paragraphs_df=None, 
     #convert year to integer
     doc_year=int(doc_year)
         
-    xml_text=kpdf.sanitized_xml_from_pdf(file_name, font_db_conn)
+    xml_text=sanitized_xml_from_pdf(file_name, font_db_conn)
     output_f = open(sanitized_file, "w")
     output_f.write(r""+xml_text)
     output_f.close()

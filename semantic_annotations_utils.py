@@ -56,18 +56,18 @@ def get_text_type(tag, tagless_text, usual_font_size):
         text_type_es=add_info_to_string(text_type_es,"pie de página")
 
     if "page_number" not in text_type:
-    
-        if tagless_text.isupper() and "title" not in text_type:
+        if (tagless_text.isupper() and "title" not in text_type):
             text_type=add_info_to_string(text_type,"emphasis")
             text_type_es=add_info_to_string(text_type_es,"énfasis") 
+
+        if "bold" in tag and "emphasis" not in text_type and "footnote_number" not in text_type:
+            text_type=add_info_to_string(text_type,"emphasis")
+            text_type_es=add_info_to_string(text_type_es,"énfasis")
 
         if "italic" in tag and "footnote_number" not in text_type:
             text_type=add_info_to_string(text_type,"quote")
             text_type_es=add_info_to_string(text_type_es,"cita")
         
-        if "bold" in tag and "emphasis" not in text_type and "footnote_number" not in text_type:
-            text_type=add_info_to_string(text_type,"emphasis")
-            text_type_es=add_info_to_string(text_type_es,"énfasis")
    
     if text_type=="":
         text_type="plain"
@@ -1510,7 +1510,7 @@ def footnote_remapping(styles_df):
                     styles_df.loc[ind, 'text_type_es']="pie de página"
                 else:
                     styles_df.loc[ind, 'text_type']="footnote_"+par['text_type']
-                    styles_df.loc[ind, 'text_type_es']="pie de página "+par['text_type_es']
+                    styles_df.loc[ind, 'text_type_es']="pie de página_"+par['text_type_es']
 
 
     return styles_df
