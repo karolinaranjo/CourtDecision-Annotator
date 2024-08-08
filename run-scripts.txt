@@ -1,0 +1,32 @@
+### Running run-scripts on Rivanna
+
+cd /scratch/kn3cs
+cd legalnlp
+
+sbatch lora/run-scripts/run_llama_legal2_binary_riv.sh
+
+### check out a job 
+squeue -u computing_id
+
+### Packages 
+
+conda activate ./legal-env
+pip install xxxx
+
+conda deactivate 
+
+### New Env on Rivanna 
+module load anaconda
+conda create --prefix ./ENV_NAME # scratch folder
+conda create -- name <ENV_NAME> python=3.9 #home folder
+conda activate <ENV_NAME>
+conda install pip
+pip install -r requirements.yml
+pip install peft==0.9.0
+conda deactivate
+sbatch <script_name>
+
+
+
+
+
