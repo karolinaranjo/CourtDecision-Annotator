@@ -74,9 +74,3 @@ out=pdf_files_to_json_for_section_identification_with_llms(pdf_folder, font_db_c
 
 ## Notes
 The code also includes functions for balancing data (`balance_data(...)`) and splitting the data into training, validation, and test sets (`split_json_data(...)`)
-
-## Files in the Repository:
-- `kutils.py`:  Contains various text processing functions.
-- `pdf_segmenter_utils.py`
-- `semantic_annotation_utils` : 
-- `llm_benchmarking_utils.py`: 
